@@ -1,5 +1,10 @@
-# Importe a biblioteca pandas
+import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
+# from sklearn.metrics import classification_report
+from sklearn.metrics import precision_score, recall_score, f1_score, roc_curve, auc
 
 # Carregue o conjunto de dados
 df = pd.read_csv('movies_metadata.csv')
@@ -25,11 +30,7 @@ df['label'] = df['genres'].apply(assign_genre_label)
 # Verifique os rótulos atribuídos
 print(df[['title', 'genres', 'label']])
 
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
-# from sklearn.metrics import classification_report
-from sklearn.metrics import precision_score, recall_score, f1_score
+
 
 # Criar uma lista de todos os gêneros
 genre_keywords = ['Action', 'Comedy', 'History', 'Family', 'Drama', 'Adventure', 'Romance', 'Crime', 'Thriller', 'Fantasy', 'Science Fiction', 'Mystery', 'Documentary', 'Horror']
@@ -89,3 +90,21 @@ for genre in genre_keywords:
     print(f'Precisão: {precision}')
     print(f'Revocação: {recall}')
     print(f'Pontuação F1: {f1}')
+
+# Curva ROC (apenas para uma classe)
+y_true = (y_test == 'Action').astype(int)
+y_prob = nb_classifier.predict_proba(X_test)[:, genre_keywords.index('Action')]
+
+fpr, tpr, thresholds = roc_curve(y_true, y_prob)
+roc_auc = auc(fpr, tpr)
+
+plt.figure()
+plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'Curva ROC (área = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('Taxa de Falsos Positivos')
+plt.ylabel('Taxa de Verdadeiros Positivos')
+plt.title('Curva ROC para a classe "Action" (Naive Bayes)')
+plt.legend(loc='lower right')
+plt.show()
