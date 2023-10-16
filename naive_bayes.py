@@ -11,8 +11,8 @@ df = pd.read_csv('movies_metadata.csv')
 ratings_df = pd.read_csv('ratings_small.csv')
 
 # Verifique a estrutura dos dados
-print(df.head())
-print(ratings_df.head())
+#print(df.head(10))
+#print(ratings_df.head(10))
 
 # Engenharia de Recursos: Calcula a média das classificações de usuários por filme
 average_ratings = ratings_df.groupby('movieId')['rating'].mean().reset_index()
@@ -20,13 +20,17 @@ average_ratings.rename(columns={'rating': 'average_rating'}, inplace=True)
 
 # Remover entradas que não são convertíveis em inteiros
 df = df[df['id'].str.isnumeric()]
+
 # Converter a coluna 'id' para int64
 df['id'] = df['id'].astype('int64')
 df = df.merge(average_ratings, left_on='id', right_on='movieId', how='left')
 
+
 # Função para atribuir rótulos com base nos gêneros
 def assign_genre_label(genres):
-    target_genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Science Fiction', 'Thriller', 'War', 'Western', 'NewGenre']
+    target_genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Family', 
+    'Fantasy', 'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Science Fiction', 
+    'Thriller', 'War', 'Western', 'NewGenre']
     
     genre_list = eval(genres)  # Converte a string de gêneros em uma lista de dicionários
     
@@ -40,7 +44,9 @@ def assign_genre_label(genres):
 df['label'] = df['genres'].apply(assign_genre_label)
 
 # Criar uma lista de todos os gêneros
-genre_keywords = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Science Fiction', 'Thriller', 'War', 'Western', 'NewGenre']
+genre_keywords = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Family', 
+'Fantasy', 'History', 'Horror', 'Music', 'Mystery', 'Romance', 'Science Fiction', 
+'Thriller', 'War', 'Western', 'NewGenre']
 
 # Criar um vetorizador de gêneros
 vectorizer = CountVectorizer(vocabulary=genre_keywords)
@@ -51,6 +57,8 @@ X = vectorizer.transform(df['label'])  # Recursos de gênero
 # Converter a matriz esparsa em um DataFrame
 X_df = pd.DataFrame(X.toarray())
 
+#print(X_df.head(10))
+
 # Definir os nomes das colunas no DataFrame
 X_df.columns = genre_keywords
 
@@ -59,6 +67,8 @@ X_combined = pd.concat([X_df, df['average_rating']], axis=1)
 
 # Dividir os Dados em Conjunto de Treinamento e Teste
 X_train, X_test, y_train, y_test = train_test_split(X_combined, df['label'], test_size=0.2, random_state=42)
+
+print(train_test_split(X_combined, df['label'], test_size=0.2, random_state=42))
 
 # Substitua valores ausentes com a média
 imputer = SimpleImputer(strategy='mean')
@@ -69,6 +79,7 @@ X_test_imputed = imputer.transform(X_test)
 hgbc_classifier = HistGradientBoostingClassifier()
 hgbc_classifier.fit(X_train_imputed, y_train)
 
+'''
 # Acurácia do Modelo
 accuracy = hgbc_classifier.score(X_test_imputed, y_test)
 print(f'Acurácia do Modelo: {accuracy}')
@@ -118,4 +129,4 @@ plt.ylabel('Taxa de Verdadeiros Positivos')
 plt.title('Curva ROC para a classe "Action" ')
 plt.legend(loc='lower right')
 plt.show()
-
+'''

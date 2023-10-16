@@ -13,7 +13,8 @@ print(df.head(10))
 
 # Função para atribuir rótulos com base nos gêneros
 def assign_genre_label(genres):
-    target_genres = ['Action', 'Comedy', 'History', 'Family', 'Drama', 'Adventure', 'Romance', 'Crime', 'Thriller', 'Fantasy', 'Science Fiction', 'Mystery', 'Documentary', 'Horror']
+    target_genres = ['Action', 'Comedy', 'History', 'Family', 'Drama', 'Adventure', 'Romance', 
+    'Crime', 'Thriller', 'Fantasy', 'Science Fiction', 'Mystery', 'Documentary', 'Horror']
     
     genre_list = eval(genres)
     
