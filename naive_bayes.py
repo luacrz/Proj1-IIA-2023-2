@@ -127,7 +127,7 @@ for i, genre in enumerate(genre_keywords):
     print(f'  F1: {f1[i]:.2f}')
     print(f'  Suporte: {support[i]}')
     print()
-
+''''
 # Calcular a curva ROC para o gênero previsto
 y_prob = naive_bayes_model.predict_proba(X_test)[:, genre_keywords.index(predicted_genre[0])]
 fpr, tpr, thresholds = roc_curve(y_test == predicted_genre[0], y_prob)
@@ -144,5 +144,30 @@ plt.ylim([0.0, 1.05])
 plt.xlabel('Taxa de Falsos Positivos')
 plt.ylabel('Taxa de Verdadeiros Positivos')
 plt.title('Curva ROC para o gênero previsto')
+plt.legend(loc='lower right')
+plt.show()
+'''
+# Calcular a curva ROC para cada classe (one-vs-rest)
+fpr = dict()
+tpr = dict()
+roc_auc = dict()
+for i in range(len(genre_keywords)):
+    y_test_binary = y_test.apply(lambda x: 1 if x == genre_keywords[i] else 0)
+    y_score = naive_bayes_model.predict_proba(X_test)[:, i]
+    fpr[i], tpr[i], _ = roc_curve(y_test_binary, y_score)
+    roc_auc[i] = auc(fpr[i], tpr[i])
+
+# Plotar a curva ROC para cada classe
+plt.figure()
+colors = ['blue', 'red', 'green', 'purple', 'orange']
+for i in range(len(genre_keywords)):
+    plt.plot(fpr[i], tpr[i], color=colors[i], lw=2, label=f'Curva ROC para {genre_keywords[i]} (área = {roc_auc[i]:.2f})')
+
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('Taxa de Falsos Positivos')
+plt.ylabel('Taxa de Verdadeiros Positivos')
+plt.title('Curva ROC para cada classe (Naive Bayes)')
 plt.legend(loc='lower right')
 plt.show()

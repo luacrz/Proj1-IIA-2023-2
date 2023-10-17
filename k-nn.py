@@ -90,7 +90,7 @@ accuracy = knn_model.score(X_test, y_test)
 print(f'Acurácia do Modelo: {accuracy:.2f}')
 
 # Fazer uma previsão
-sample_genre_vector = mlb.transform([['Action', 'Adventure', 'Western']])  # Gêneros do exemplo
+sample_genre_vector = mlb.transform([['Action', 'Adventure', 'Animation']])  # Gêneros do exemplo
 sample_genre_vector_with_rating = np.append(sample_genre_vector, [[3.5]], axis=1)  # Adicionar a avaliação média
 
 predicted_genre = knn_model.predict(sample_genre_vector_with_rating)
