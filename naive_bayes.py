@@ -15,15 +15,22 @@ ratings_df = pd.read_csv('ratings_small.csv')
 #print(ratings_df.head(10))
 
 # Engenharia de Recursos: Calcula a média das classificações de usuários por filme
-average_ratings = ratings_df.groupby('movieId')['rating'].mean().reset_index()
-average_ratings.rename(columns={'rating': 'average_rating'}, inplace=True)
+average_ratings = ratings_df.groupby('movieId')['rating'].agg(['mean', 'count']).reset_index()
+average_ratings.rename(columns={'mean': 'average_rating', 'count': 'num_ratings'}, inplace=True)
+
+# Filtrar os filmes com pelo menos 20 avaliações
+average_ratings = average_ratings[average_ratings['num_ratings'] >= 20]
+
+
 
 # Remover entradas que não são convertíveis em inteiros
 df = df[df['id'].str.isnumeric()]
 
 # Converter a coluna 'id' para int64
 df['id'] = df['id'].astype('int64')
-df = df.merge(average_ratings, left_on='id', right_on='movieId', how='left')
+
+# Combinar os dados de filmes com as médias das avaliações
+df = df.merge(average_ratings, left_on='id', right_on='movieId', how='inner')
 
 
 # Função para atribuir rótulos com base nos gêneros
@@ -64,11 +71,12 @@ X_df.columns = genre_keywords
 
 # Concatenar os DataFrames
 X_combined = pd.concat([X_df, df['average_rating']], axis=1)
+print(X_combined.head(10))
 
 # Dividir os Dados em Conjunto de Treinamento e Teste
 X_train, X_test, y_train, y_test = train_test_split(X_combined, df['label'], test_size=0.2, random_state=42)
 
-print(train_test_split(X_combined, df['label'], test_size=0.2, random_state=42))
+# print(train_test_split(X_combined, df['label'], test_size=0.2, random_state=42))
 
 # Substitua valores ausentes com a média
 imputer = SimpleImputer(strategy='mean')
@@ -79,10 +87,10 @@ X_test_imputed = imputer.transform(X_test)
 hgbc_classifier = HistGradientBoostingClassifier()
 hgbc_classifier.fit(X_train_imputed, y_train)
 
-'''
+
 # Acurácia do Modelo
 accuracy = hgbc_classifier.score(X_test_imputed, y_test)
-print(f'Acurácia do Modelo: {accuracy}')
+print(f'Acurácia do Modelo: {accuracy:.2f}')
 
 # Fazer uma previsão
 sample_genre_vector = vectorizer.transform(['Action Adventure Western NewGenre'])
@@ -93,7 +101,7 @@ print(f'Gênero Previsto: {predicted_genre[0]}')
 # Recomendar filmes com base no gênero previsto
 recommended_movies = df[df['label'] == predicted_genre[0]]
 print('Filmes Recomendados:')
-print(recommended_movies[['title', 'genres']])
+print(recommended_movies[['title', 'genres']].head(10))
 
 # Fazer previsões
 y_pred = hgbc_classifier.predict(X_test)
@@ -102,19 +110,26 @@ y_pred = hgbc_classifier.predict(X_test)
 for genre in genre_keywords:
     y_true = (y_test == genre).astype(int)
     y_pred_class = (y_pred == genre).astype(int)
-
+    '''
+    print(f'Y TRUE\n{y_true}')
+    print(f'Y test\n{y_test}')
+    print(f'Y genre\n{genre}')
+    print(f'Y COMPARAÇÃO\n{(y_test == genre).astype(int)}')
+    #print(f'Y pred\n{y_pred}')
+    #print(f'Y_pred_class\n{y_pred_class}')
+    '''
     precision = precision_score(y_true, y_pred_class)
     recall = recall_score(y_true, y_pred_class)
     f1 = f1_score(y_true, y_pred_class)
 
     print(f'Gênero: {genre}')
-    print(f'Precisão: {precision}')
-    print(f'Revocação: {recall}')
-    print(f'Pontuação F1: {f1}')
+    print(f'Precisão: {precision:.2f}')
+    print(f'Revocação: {recall:.2f}')
+    print(f'Pontuação F1: {f1:.2f}')
 
 # Curva ROC (apenas para uma classe)
-y_true = (y_test == 'Action').astype(int)
-y_prob = hgbc_classifier.predict_proba(X_test)[:, genre_keywords.index('Action')]
+y_true = (y_test == 'Drama').astype(int)
+y_prob = hgbc_classifier.predict_proba(X_test)[:, genre_keywords.index('Drama')]
 
 fpr, tpr, thresholds = roc_curve(y_true, y_prob)
 roc_auc = auc(fpr, tpr)
@@ -126,7 +141,6 @@ plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
 plt.xlabel('Taxa de Falsos Positivos')
 plt.ylabel('Taxa de Verdadeiros Positivos')
-plt.title('Curva ROC para a classe "Action" ')
+plt.title('Curva ROC para a classe "Drama" ')
 plt.legend(loc='lower right')
 plt.show()
-'''

@@ -7,20 +7,25 @@ import matplotlib.pyplot as plt
 
 # Carregar os dados
 movies_metadata = pd.read_csv('movies_metadata.csv')
-ratings = pd.read_csv('ratings_small.csv')
+ratings_df = pd.read_csv('ratings_small.csv')
 
-# Calcular a média das avaliações por filme
-average_ratings = ratings.groupby('movieId')['rating'].mean().reset_index()
-average_ratings.rename(columns={'rating': 'average_rating'}, inplace=True)
+# Engenharia de Recursos: Calcula a média das classificações de usuários por filme
+# e a quantidade de usuarios que avaliaram cada filme
+average_ratings = ratings_df.groupby('movieId')['rating'].agg(['mean', 'count']).reset_index()
+average_ratings.rename(columns={'mean': 'average_rating', 'count': 'num_ratings'}, inplace=True)
+
+# Filtrar os filmes com pelo menos 20 avaliações
+average_ratings = average_ratings[average_ratings['num_ratings'] >= 20]
 
 # Remover entradas que não são convertíveis em inteiros
 movies_metadata = movies_metadata[movies_metadata['id'].str.isnumeric()]
 
 # Converter a coluna 'id' para int64
-movies_metadata['id'] = movies_metadata['id'].astype('int64')
+movies_metadata['id'] = movies_metadata['id'].astype('int')
 
 # Combinar os dados de filmes com as médias das avaliações
-movies_metadata = movies_metadata.merge(average_ratings, left_on='id', right_on='movieId', how='left')
+movies_metadata = movies_metadata.merge(average_ratings, left_on='id', right_on='movieId', how='inner')
+
 
 # Atribuir rótulos aos filmes com base nos gêneros
 target_genres = ['Action', 'Adventure', 'Animation', 'Comedy', 'Drama', 'Family', 'Fantasy', 
@@ -36,7 +41,9 @@ def assign_genre_label(genres):
     
     return 'Other'
 
+# print(f'Antes\n {movies_metadata.head(10)}')
 movies_metadata['label'] = movies_metadata['genres'].apply(assign_genre_label)
+# print(f'Depois\n {movies_metadata.head(10)}')
 
 # Criar o vetorizador de gêneros
 vectorizer = CountVectorizer(vocabulary=target_genres)
