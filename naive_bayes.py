@@ -98,7 +98,7 @@ print(f'Acurácia do Modelo: {accuracy:.2f}')
 vectorizer = CountVectorizer(vocabulary=genre_keywords)
 
 # Fazer uma previsão
-sample_genre_vector = mlb.transform([['Action', 'Adventure', 'Western']])  # Gêneros do exemplo
+sample_genre_vector = mlb.transform([['Action', 'Adventure', 'Drama']])  # Gêneros do exemplo
 sample_genre_vector_with_rating = np.append(sample_genre_vector, [[3.5]], axis=1)  # Adicionar a avaliação média
 
 predicted_genre = naive_bayes_model.predict(sample_genre_vector_with_rating)
@@ -127,26 +127,7 @@ for i, genre in enumerate(genre_keywords):
     print(f'  F1: {f1[i]:.2f}')
     print(f'  Suporte: {support[i]}')
     print()
-''''
-# Calcular a curva ROC para o gênero previsto
-y_prob = naive_bayes_model.predict_proba(X_test)[:, genre_keywords.index(predicted_genre[0])]
-fpr, tpr, thresholds = roc_curve(y_test == predicted_genre[0], y_prob)
-
-# Calcular a área sob a curva ROC
-roc_auc = auc(fpr, tpr)
-
-# Plotar a curva ROC
-plt.figure()
-plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'Curva ROC (área = {roc_auc:.2f})')
-plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('Taxa de Falsos Positivos')
-plt.ylabel('Taxa de Verdadeiros Positivos')
-plt.title('Curva ROC para o gênero previsto')
-plt.legend(loc='lower right')
-plt.show()
-'''
+    
 # Calcular a curva ROC para cada classe (one-vs-rest)
 fpr = dict()
 tpr = dict()
