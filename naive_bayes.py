@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import precision_score, recall_score, f1_score, roc_curve, auc, accuracy_score, classification_report
+from sklearn.metrics import precision_recall_fscore_support, precision_score, recall_score, f1_score, roc_curve, auc, accuracy_score, classification_report
 from sklearn.impute import SimpleImputer
 import numpy as np
 from sklearn.preprocessing import MultiLabelBinarizer
@@ -112,21 +112,27 @@ print(recommended_movies[['title', 'genres']])
 # Fazer previsões no conjunto de teste
 y_pred = naive_bayes_model.predict(X_test)
 
-# Calcular precisão, revocação e F1 para cada classe
-precision = precision_score(y_test, y_pred, average='weighted')
-recall = recall_score(y_test, y_pred, average='weighted')
-f1 = f1_score(y_test, y_pred, average='weighted')
+# Calcular precisão, revocação, F1 e suporte para cada gênero
+precision, recall, f1, support = precision_recall_fscore_support(y_test, y_pred, average=None, labels=genre_keywords)
 
-print(f'Precisão: {precision:.2f}')
-print(f'Revocação: {recall:.2f}')
-print(f'Pontuação F1: {f1:.2f}')
+# Calcular a acurácia
+accuracy = accuracy_score(y_test, y_pred)
 
-# Curva ROC
-# Vamos considerar a classe 'Drama' para a curva ROC (substitua por outra classe se desejar)
-y_true_drama = (y_test == 'Drama').astype(int)
-y_scores_drama = naive_bayes_model.predict_proba(X_test)[:, genre_keywords.index('Drama')]
+# Imprimir as métricas para cada gênero
+print('Métricas para cada gênero:')
+for i, genre in enumerate(genre_keywords):
+    print(f'Gênero: {genre}')
+    print(f'  Precisão: {precision[i]:.2f}')
+    print(f'  Revocação: {recall[i]:.2f}')
+    print(f'  F1: {f1[i]:.2f}')
+    print(f'  Suporte: {support[i]}')
+    print()
 
-fpr, tpr, thresholds = roc_curve(y_true_drama, y_scores_drama)
+# Calcular a curva ROC para o gênero previsto
+y_prob = naive_bayes_model.predict_proba(X_test)[:, genre_keywords.index(predicted_genre[0])]
+fpr, tpr, thresholds = roc_curve(y_test == predicted_genre[0], y_prob)
+
+# Calcular a área sob a curva ROC
 roc_auc = auc(fpr, tpr)
 
 # Plotar a curva ROC
@@ -137,6 +143,6 @@ plt.xlim([0.0, 1.0])
 plt.ylim([0.0, 1.05])
 plt.xlabel('Taxa de Falsos Positivos')
 plt.ylabel('Taxa de Verdadeiros Positivos')
-plt.title('Curva ROC para a classe "Drama" ')
+plt.title('Curva ROC para o gênero previsto')
 plt.legend(loc='lower right')
 plt.show()
