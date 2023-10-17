@@ -12,17 +12,7 @@ Siga as etapas abaixo para configurar e executar o sistema de recomendação:
 
 ```pip install -r requirements.txt```
 2. 
-.
-.
-.
-3. 
-.
-.
-4. 
-.
-.
-.
-...
+   Execute o modelo de preferência
 
 
 ## Contribuição
